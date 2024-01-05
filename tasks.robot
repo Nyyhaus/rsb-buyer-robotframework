@@ -4,10 +4,9 @@ Documentation     Orders robots from RobotSpareBin Industries Inc.
 ...               Saves the screenshot of the ordered robot.
 ...               Embeds the screenshot of the robot to the PDF receipt.
 ...               Creates ZIP archive of the receipts and the images.
-Library    RPA.Browser.Selenium    auto_close=${FALSE}
+Library    RPA.Browser.Selenium
 Library    RPA.HTTP
 Library    RPA.Tables
-Library    RPA.Excel.Files
 Library    RPA.PDF
 Library    RPA.Archive
 
@@ -42,6 +41,8 @@ Process orders file
 
 Fill the form
     [Arguments]    ${order}
+    ${success}=    Set Variable    False
+
     Close the annoying modal
     #Head
     Select From List By Value    id:head    ${order}[Head]
@@ -56,17 +57,16 @@ Fill the form
     
     Click Button    order
     
-    ${present}=  Run Keyword And Return Status    Element Should Be Visible   css:div.alert.alert-danger
+    WHILE    ${success}==False    limit=10
+        TRY
+            Store PDF    ${order}
+            Click Button   order-another
+            ${success}=    Set Variable    True
+        EXCEPT    
+            Click Button    order
+        END
+    END
 
-    Run Keyword If    ${present}    Click Button Order
-    
-    Store PDF    ${order}
-
-    Click Button When Visible    order-another
-
-Click Button Order
-    Click Button    order
-    
 Store PDF
     [Arguments]    ${order}
     
